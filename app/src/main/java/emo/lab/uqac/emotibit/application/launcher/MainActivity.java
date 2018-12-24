@@ -102,7 +102,7 @@ public class MainActivity extends AppCompatActivity {
                 alertDialogBuilder
                         .setMessage("Click yes to exit!")
                         .setCancelable(false)
-                        .setPositiveButton("Yes",new DialogInterface.OnClickListener() {
+                        .setPositiveButton("Yes;",new DialogInterface.OnClickListener() {
                             public void onClick(DialogInterface dialog,int id) {
                                 // if this button is clicked, just close
                                 // the dialog box and do nothing
