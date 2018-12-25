@@ -51,7 +51,9 @@
                 android:enabled="false"
                 android:text="emotiBit1"
                 android:textSize="18sp"
-                android:textStyle="bold" />
+                android:textStyle="bold"
+                android:onClick="launchEmotiBit"/>
+
         </LinearLayout>
 
         <LinearLayout
@@ -85,7 +87,8 @@
                 android:enabled="false"
                 android:text="emotiBit2"
                 android:textSize="18sp"
-                android:textStyle="bold" />
+                android:textStyle="bold"
+                android:onClick="launchEmotiBit"/>
 
         </LinearLayout>
 

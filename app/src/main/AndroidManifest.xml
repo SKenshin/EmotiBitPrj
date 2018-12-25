@@ -16,6 +16,13 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <activity android:name=".application.launcher.EmotiBitActivity"
+            android:parentActivityName=".application.launcher.MainActivity">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="emo.lab.uqac.emotibit.application.launcher.MainActivity" />
+        </activity>
     </application>
 
 </manifest>

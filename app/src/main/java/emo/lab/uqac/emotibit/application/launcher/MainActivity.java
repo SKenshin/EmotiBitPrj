@@ -2,14 +2,16 @@ package emo.lab.uqac.emotibit.application.launcher;
 
 import android.app.AlertDialog;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.CompoundButton;
 import android.widget.Switch;
-
 import emo.lab.uqac.emotibit.R;
+
 
 
 public class MainActivity extends AppCompatActivity {
@@ -19,6 +21,11 @@ public class MainActivity extends AppCompatActivity {
     private Switch switch1;
     private Switch switch2;
     private Button button_exit;
+
+    private static final String LOG_TAG = MainActivity.class.getSimpleName();
+
+    public static final String EXTRA_MESSAGE =
+            "com.example.android.twoactivities.extra.MESSAGE";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -60,7 +67,7 @@ public class MainActivity extends AppCompatActivity {
                 }
             });
 
-            button_emot1.setOnClickListener(new View.OnClickListener() {
+            /*button_emot1.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
                     AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(
@@ -102,7 +109,7 @@ public class MainActivity extends AppCompatActivity {
                 alertDialogBuilder
                         .setMessage("Click yes to exit!")
                         .setCancelable(false)
-                        .setPositiveButton("Yes;",new DialogInterface.OnClickListener() {
+                        .setPositiveButton("Yes",new DialogInterface.OnClickListener() {
                             public void onClick(DialogInterface dialog,int id) {
                                 // if this button is clicked, just close
                                 // the dialog box and do nothing
@@ -116,7 +123,15 @@ public class MainActivity extends AppCompatActivity {
                 // show it
                 alertDialog.show();
             }
-        });
+        });*/
+    }
+
+    public void launchEmotiBit(View view) {
+        Log.d(LOG_TAG, "Button clicked!");
+
+        Intent intent = new Intent(this, EmotiBitActivity.class);
+
+        startActivity(intent);
     }
 }
 
