@@ -66,64 +66,6 @@ public class MainActivity extends AppCompatActivity {
                     button_emot2.setEnabled(switch2.isChecked());
                 }
             });
-
-            /*button_emot1.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(
-                            MainActivity.this);
-
-                    // set title
-                    alertDialogBuilder.setTitle("Your Title");
-
-                    // set dialog message
-                    alertDialogBuilder
-                            .setMessage("Click yes to exit!")
-                            .setCancelable(false)
-                            .setPositiveButton("Yes",new DialogInterface.OnClickListener() {
-                                public void onClick(DialogInterface dialog,int id) {
-                                    // if this button is clicked, just close
-                                    // the dialog box and do nothing
-                                    dialog.cancel();
-                                }
-                            });
-
-                    // create alert dialog
-                    AlertDialog alertDialog = alertDialogBuilder.create();
-
-                    // show it
-                    alertDialog.show();
-                }
-            });
-
-        button_emot2.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(
-                        MainActivity.this);
-
-                // set title
-                alertDialogBuilder.setTitle("Your Title");
-
-                // set dialog message
-                alertDialogBuilder
-                        .setMessage("Click yes to exit!")
-                        .setCancelable(false)
-                        .setPositiveButton("Yes",new DialogInterface.OnClickListener() {
-                            public void onClick(DialogInterface dialog,int id) {
-                                // if this button is clicked, just close
-                                // the dialog box and do nothing
-                                dialog.cancel();
-                            }
-                        });
-
-                // create alert dialog
-                AlertDialog alertDialog = alertDialogBuilder.create();
-
-                // show it
-                alertDialog.show();
-            }
-        });*/
     }
 
     public void launchEmotiBit(View view) {
