@@ -31,8 +31,13 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        emotiBitLauncher();
         button_exit = (Button) findViewById(R.id.button_exit);
+
+        button_emot1 = (Button) findViewById(R.id.button_emot1);
+        button_emot2 = (Button) findViewById(R.id.button_emot2);
+
+        switch1 = (Switch) findViewById(R.id.switch1);
+        switch2 = (Switch) findViewById(R.id.switch2);
 
         button_exit.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -43,15 +48,11 @@ public class MainActivity extends AppCompatActivity {
 
             }
         });
+
+        activateEmotiBit();
     }
 
-    private <T> void emotiBitLauncher(){
-
-            button_emot1 = (Button) findViewById(R.id.button_emot1);
-            button_emot2 = (Button) findViewById(R.id.button_emot2);
-
-            switch1 = (Switch) findViewById(R.id.switch1);
-            switch2 = (Switch) findViewById(R.id.switch2);
+    private <T> void activateEmotiBit(){
 
             switch1.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
                 @Override

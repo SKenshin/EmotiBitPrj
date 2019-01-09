@@ -63,8 +63,6 @@ public class EmotiBitActivity extends AppCompatActivity {
         _switchRecord = (Switch) findViewById(R.id.switch_record);
         _switchGPS = (Switch) findViewById(R.id.switch_gps);
 
-
-
         _switchRecord.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
