@@ -16,30 +16,27 @@ import emo.lab.uqac.emotibit.R;
 
 public class MainActivity extends AppCompatActivity {
 
-    private Button button_emot1;
-    private Button button_emot2;
-    private Switch switch1;
-    private Switch switch2;
-    private Button button_exit;
+    private Button _buttonEmot1;
+    private Button _buttonEmot2;
+    private Switch _switch1;
+    private Switch _switch2;
+    private Button _buttonExit;
 
     private static final String LOG_TAG = MainActivity.class.getSimpleName();
-
-    public static final String EXTRA_MESSAGE =
-            "com.example.android.twoactivities.extra.MESSAGE";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        button_exit = (Button) findViewById(R.id.button_exit);
+        _buttonExit = (Button) findViewById(R.id.button_exit);
 
-        button_emot1 = (Button) findViewById(R.id.button_emot1);
-        button_emot2 = (Button) findViewById(R.id.button_emot2);
+        _buttonEmot1 = (Button) findViewById(R.id.button_emot1);
+        _buttonEmot2 = (Button) findViewById(R.id.button_emot2);
 
-        switch1 = (Switch) findViewById(R.id.switch1);
-        switch2 = (Switch) findViewById(R.id.switch2);
+        _switch1 = (Switch) findViewById(R.id.switch1);
+        _switch2 = (Switch) findViewById(R.id.switch2);
 
-        button_exit.setOnClickListener(new View.OnClickListener() {
+        _buttonExit.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 finish();
@@ -54,23 +51,22 @@ public class MainActivity extends AppCompatActivity {
 
     private <T> void activateEmotiBit(){
 
-            switch1.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            _switch1.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
                 @Override
                 public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                    button_emot1.setEnabled(switch1.isChecked());
+                    _buttonEmot1.setEnabled(_switch1.isChecked());
                 }
             });
 
-            switch2.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            _switch2.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
                 @Override
                 public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                    button_emot2.setEnabled(switch2.isChecked());
+                    _buttonEmot2.setEnabled(_switch2.isChecked());
                 }
             });
     }
 
     public void launchEmotiBit(View view) {
-        Log.d(LOG_TAG, "Button clicked!");
 
         Intent intent = new Intent(this, EmotiBitActivity.class);
 
