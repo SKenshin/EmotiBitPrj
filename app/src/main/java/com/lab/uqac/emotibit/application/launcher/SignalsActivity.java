@@ -1,15 +1,13 @@
-package emo.lab.uqac.emotibit.application.launcher;
+package com.lab.uqac.emotibit.application.launcher;
 
 import android.graphics.Color;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
 
 import com.jjoe64.graphview.GraphView;
 import com.jjoe64.graphview.LegendRenderer;
 import com.jjoe64.graphview.series.DataPoint;
 import com.jjoe64.graphview.series.LineGraphSeries;
-
-import emo.lab.uqac.emotibit.R;
 
 public class SignalsActivity extends AppCompatActivity {
 
