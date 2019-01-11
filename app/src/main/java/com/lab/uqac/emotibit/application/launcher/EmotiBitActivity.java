@@ -72,16 +72,16 @@ public class EmotiBitActivity extends AppCompatActivity {
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
 
                 if(isChecked)
-                    _imViewRecStatus.setImageResource(R.drawable.rec_on);
+                    _imViewRecStatus.setImageResource(R.drawable.record_on);
                 else
-                    _imViewRecStatus.setImageResource(R.drawable.rec_off);
+                    _imViewRecStatus.setImageResource(R.drawable.record_off);
             }
         });
 
         _switchGPS.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-
+                _buttonGPS.setEnabled(_switchGPS.isChecked());
             }
         });
     }

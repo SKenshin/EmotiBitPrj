@@ -10,7 +10,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginStart="8dp"
-        android:layout_marginTop="8dp"
+        android:layout_marginTop="20dp"
         android:layout_marginEnd="8dp"
         android:layout_marginBottom="8dp"
         android:orientation="vertical"
@@ -20,6 +20,18 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
 
+        <Button
+            android:id="@+id/button_connect"
+            android:layout_width="233dp"
+            android:layout_height="89dp"
+            android:text="Connect devices"
+            android:drawableRight="@drawable/bluetooth_74"
+            android:background="?android:attr/colorBackground"/>
+
+        <Space
+            android:layout_width="match_parent"
+            android:layout_height="50dp" />
+
         <LinearLayout
             android:id="@+id/line1"
             android:layout_width="match_parent"
@@ -27,14 +39,12 @@
             android:orientation="horizontal"
             tools:layout_editor_absoluteY="124dp">
 
-            <Switch
-                android:id="@+id/switch1"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+            <ImageView
+                android:id="@+id/im_emoti1"
+                android:layout_width="55dp"
+                android:layout_height="70dp"
                 android:layout_weight="0.25"
-                android:text="Activate"
-                android:textSize="18sp"
-                android:textStyle="bold" />
+                app:srcCompat="@drawable/logo_emotioff" />
 
             <android.support.constraint.Guideline
                 android:id="@+id/guideline4"
@@ -43,18 +53,32 @@
                 android:layout_weight="1"
                 android:orientation="horizontal" />
 
+            <Switch
+                android:id="@+id/switch1"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="0.25"
+                android:text="Activate"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:theme="@style/SwitchTheme" />
+
             <Button
                 android:id="@+id/button_emot1"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:enabled="false"
+                android:onClick="launchEmotiBit"
                 android:text="emotiBit1"
                 android:textSize="18sp"
-                android:textStyle="bold"
-                android:onClick="launchEmotiBit"/>
+                android:textStyle="bold" />
 
         </LinearLayout>
+
+        <Space
+            android:layout_width="match_parent"
+            android:layout_height="50dp" />
 
         <LinearLayout
             android:id="@+id/line2"
@@ -63,6 +87,13 @@
             android:orientation="horizontal"
             tools:layout_editor_absoluteY="202dp">
 
+            <ImageView
+                android:id="@+id/im_emoti2"
+                android:layout_width="55dp"
+                android:layout_height="70dp"
+                android:layout_weight="0.25"
+                app:srcCompat="@drawable/logo_emotioff" />
+
             <Switch
                 android:id="@+id/switch2"
                 android:layout_width="wrap_content"
@@ -70,7 +101,8 @@
                 android:layout_weight="0.25"
                 android:text="Activate"
                 android:textSize="18sp"
-                android:textStyle="bold" />
+                android:textStyle="bold"
+                android:theme="@style/SwitchTheme" />
 
             <android.support.constraint.Guideline
                 android:id="@+id/guideline5"
@@ -85,16 +117,16 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:enabled="false"
+                android:onClick="launchEmotiBit"
                 android:text="emotiBit2"
                 android:textSize="18sp"
-                android:textStyle="bold"
-                android:onClick="launchEmotiBit"/>
+                android:textStyle="bold" />
 
         </LinearLayout>
 
         <Space
             android:layout_width="match_parent"
-            android:layout_height="99dp" />
+            android:layout_height="120dp" />
 
         <Button
             android:id="@+id/button_exit"
