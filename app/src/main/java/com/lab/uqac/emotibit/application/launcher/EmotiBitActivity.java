@@ -1,4 +1,4 @@
-package emo.lab.uqac.emotibit.application.launcher;
+package com.lab.uqac.emotibit.application.launcher;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -7,6 +7,7 @@ import android.content.IntentFilter;
 import android.os.BatteryManager;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.View;
 import android.view.Window;
 import android.widget.Button;
@@ -15,8 +16,6 @@ import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.Switch;
 import android.widget.TextView;
-
-import emo.lab.uqac.emotibit.R;
 
 public class EmotiBitActivity extends AppCompatActivity {
 
@@ -30,7 +29,7 @@ public class EmotiBitActivity extends AppCompatActivity {
     private ImageView _imViewRecStatus;
     private Button _buttonSignals;
     private Button _buttonGPS;
-
+    private static final String LOG_TAG = MainActivity.class.getSimpleName();
 
     private BroadcastReceiver mBroadcastReceiver = new BroadcastReceiver() {
         @Override
@@ -91,6 +90,13 @@ public class EmotiBitActivity extends AppCompatActivity {
 
         Intent intent = new Intent(this, SignalsActivity.class);
 
+        startActivity(intent);
+    }
+
+    public void displayMap(View view){
+
+        Intent intent = new Intent(this, MapsActivity.class);
+        Log.d(LOG_TAG, "displayMap ----------------------- ");
         startActivity(intent);
     }
 }

@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".application.launcher.EmotiBitActivity">
+    tools:context="com.lab.uqac.emotibit.application.launcher.EmotiBitActivity">
 
 
     <LinearLayout
@@ -197,6 +197,7 @@
         android:layout_marginTop="28dp"
         android:layout_marginEnd="8dp"
         android:text="GPS MAP"
+        android:onClick="displayMap"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.501"
         app:layout_constraintStart_toStartOf="parent"

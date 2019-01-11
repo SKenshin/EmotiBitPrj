@@ -1,16 +1,12 @@
-package emo.lab.uqac.emotibit.application.launcher;
+package com.lab.uqac.emotibit.application.launcher;
 
-import android.app.AlertDialog;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.CompoundButton;
 import android.widget.Switch;
-import emo.lab.uqac.emotibit.R;
 
 
 
