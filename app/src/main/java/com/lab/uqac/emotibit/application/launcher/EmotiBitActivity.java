@@ -1,12 +1,12 @@
 package com.lab.uqac.emotibit.application.launcher;
 
-import android.app.ActionBar;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.BatteryManager;
 import android.os.Bundle;
+import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
@@ -52,6 +52,11 @@ public class EmotiBitActivity extends AppCompatActivity {
         setContentView(R.layout.activity_emotibit);
 
         getSupportActionBar().setDisplayHomeAsUpEnabled(false);
+
+        Intent intent = getIntent();
+
+        String title = intent.getStringExtra("selected");
+        getSupportActionBar().setTitle(title);
 
         _context = getApplicationContext();
         switchController();

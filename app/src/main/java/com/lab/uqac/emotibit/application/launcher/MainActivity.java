@@ -29,6 +29,8 @@ public class MainActivity extends AppCompatActivity {
     private LinearLayout _verticalLayout;
     private LinearLayout.LayoutParams _params;
     private static final String LOG_TAG = MainActivity.class.getSimpleName();
+    private String _texteButton;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -62,7 +64,7 @@ public class MainActivity extends AppCompatActivity {
 
         Intent intent = new Intent(this, EmotiBitActivity.class);
 
-        intent.putExtra("selected", "Emotibit " + _index );
+        intent.putExtra("selected", _texteButton );
 
         startActivity(intent);
     }
@@ -99,7 +101,7 @@ public class MainActivity extends AppCompatActivity {
 
     private View.OnClickListener buttonListener = new View.OnClickListener() {
         public void onClick(View v) {
-
+            _texteButton = ((Button)v).getText().toString();;
             launchEmotiBit(v);
         }
     };

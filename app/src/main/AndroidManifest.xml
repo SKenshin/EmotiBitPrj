@@ -59,13 +59,6 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="com.lab.uqac.emotibit.application.launcher.EmotiBitActivity" />
         </activity>
-        <activity
-            android:name=".TabActivity"
-            android:parentActivityName=".MainActivity">
-            <meta-data
-                android:name="android.support.PARENT_ACTIVITY"
-                android:value="com.lab.uqac.emotibit.application.launcher.MainActivity" />
-        </activity>
     </application>
 
 </manifest>
