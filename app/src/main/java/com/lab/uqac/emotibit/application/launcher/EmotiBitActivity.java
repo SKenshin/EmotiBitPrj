@@ -1,5 +1,6 @@
 package com.lab.uqac.emotibit.application.launcher;
 
+import android.app.ActionBar;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -49,6 +50,9 @@ public class EmotiBitActivity extends AppCompatActivity {
         requestWindowFeature(Window.FEATURE_ACTION_BAR);
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_emotibit);
+
+        getSupportActionBar().setDisplayHomeAsUpEnabled(false);
+
         _context = getApplicationContext();
         switchController();
         IntentFilter iFilter = new IntentFilter(Intent.ACTION_BATTERY_CHANGED);
