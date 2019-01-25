@@ -91,7 +91,7 @@ public class MainActivity extends AppCompatActivity {
 
             try {
                 _handler.removeCallbacks(addButtonTask);
-                _handler.postDelayed(addButtonTask, 2500);
+                _handler.postDelayed(addButtonTask, 5000);
             } catch (Exception e) {
                 // TODO Auto-generated catch block
                 e.printStackTrace();
@@ -101,7 +101,10 @@ public class MainActivity extends AppCompatActivity {
 
     private View.OnClickListener buttonListener = new View.OnClickListener() {
         public void onClick(View v) {
-            _texteButton = ((Button)v).getText().toString();;
+            _texteButton = ((Button)v).getText().toString();
+
+            _handler.removeCallbacks(addButtonTask);
+
             launchEmotiBit(v);
         }
     };

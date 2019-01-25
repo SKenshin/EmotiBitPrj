@@ -1,4 +1,16 @@
 <resources>
     <string name="app_name">EmotiBit</string>
     <string name="title_activity_maps">Map</string>
+    <string-array name="graph_array">
+        <item>Select a graph</item>
+        <item>ACC</item>
+        <item>GYRO</item>
+        <item>MAGN</item>
+        <item>PPG</item>
+        <item>PPGR</item>
+        <item>EDA</item>
+        <item>TEMP</item>
+        <item>HUM</item>
+    </string-array>
+
 </resources>
