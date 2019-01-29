@@ -1,6 +1,7 @@
 <resources>
     <string name="app_name">EmotiBit</string>
     <string name="title_activity_maps">Map</string>
+    <string name="prompt">Select a graph</string>
     <string-array name="graph_array">
         <item>Select a graph</item>
         <item>ACC</item>

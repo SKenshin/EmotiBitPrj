@@ -1,6 +1,7 @@
 package com.lab.uqac.emotibit.application.launcher;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -8,29 +9,32 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
+import android.graphics.drawable.Drawable;
 import android.location.Location;
 import android.location.LocationManager;
 import android.os.BatteryManager;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
-import android.support.v7.app.ActionBar;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
+import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.Window;
+import android.view.inputmethod.EditorInfo;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
-import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
+import android.widget.ScrollView;
 import android.widget.Spinner;
-import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -47,30 +51,38 @@ import com.jjoe64.graphview.series.LineGraphSeries;
 
 import listener.OnSwipeTouchListener;
 
-public class EmotiBitActivity extends AppCompatActivity implements View.OnClickListener, OnMapReadyCallback {
+public class EmotiBitActivity extends AppCompatActivity implements View.OnClickListener, OnMapReadyCallback, View.OnTouchListener {
 
-    private Context _context;
+    private Context mContext;
 
-    private TextView _textViewPercentageBat;
-    private ProgressBar _progressBarBat;
-    private int _progressStatus = 0;
-    private ImageView _imViewRecStatus;
-    private ImageView _imViewLocation;
-    private Button _buttonRecord;
-    private Button _buttonGPS;
-    private Button _buttonHibernate;
-    private boolean _isRecord = false;
-    private boolean _isHibernate = false;
-    private boolean _isGPS = false;
-    private GoogleMap _map;
-    private EditText _editText;
-    private boolean _isEditing = false;
-    private Spinner _spinner;
-
+    private TextView mTextViewPercentageBat;
+    private ProgressBar mProgressBarBat;
+    private int mProgressStatus = 0;
+    private ImageView mImViewRecStatus;
+    private ImageView mImViewLocation;
+    private ImageView mImViewLogo;
+    private Button mButtonRecord;
+    private Button mButtonGPS;
+    private Button mButtonHibernate;
+    private boolean mIsRecord = false;
+    private boolean mIsHibernate = false;
+    private boolean mIsGPS = false;
+    private GoogleMap mMap;
+    private EditText mEditText;
+    private boolean mIsEditing = false;
+    private Spinner mSpinner;
+    private final Handler mHandler = new Handler();
+    private LineGraphSeries<DataPoint> mSeries1;
+    private LineGraphSeries<DataPoint> mSeries2;
+    private LineGraphSeries<DataPoint> mSeries3;
+    private int mSelectedGraphPosition = 0;
+    private Runnable mTimer;
+    private ScrollView mScrollView;
+    private int mColor;
 
     private static final int LOCATION_PERMISSION_REQUEST_CODE = 1;
 
-    private static final String LOG_TAG = MainActivity.class.getSimpleName();
+    private static final String LOG_TAG = EmotiBitActivity.class.getSimpleName();
 
     private BroadcastReceiver mBroadcastReceiver = new BroadcastReceiver() {
         @Override
@@ -80,73 +92,66 @@ public class EmotiBitActivity extends AppCompatActivity implements View.OnClickL
 
             int level = intent.getIntExtra(BatteryManager.EXTRA_LEVEL,-1);
             float percentage = level/ (float) scale;
-            _progressStatus = (int)((percentage)*100);
-            _textViewPercentageBat.setText("" + _progressStatus + "%");
-            _progressBarBat.setProgress(_progressStatus);
+            mProgressStatus = (int)((percentage)*100);
+            mTextViewPercentageBat.setText("" + mProgressStatus + "%");
+            mProgressBarBat.setProgress(mProgressStatus);
         }
     };
+
+
+    @SuppressLint("ClickableViewAccessibility")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         requestWindowFeature(Window.FEATURE_ACTION_BAR);
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_emotibit);
 
-        getSupportActionBar().setDisplayHomeAsUpEnabled(false);
+        //getSupportActionBar().setDisplayHomeAsUpEnabled(false);
 
         Intent intent = getIntent();
 
         String title = intent.getStringExtra("selected");
         getSupportActionBar().setTitle(title);
 
-        _context = getApplicationContext();
+        mContext = getApplicationContext();
         IntentFilter iFilter = new IntentFilter(Intent.ACTION_BATTERY_CHANGED);
-        _context.registerReceiver(mBroadcastReceiver,iFilter);
-        _textViewPercentageBat = (TextView) findViewById(R.id.percentage_bat);
-        _progressBarBat = (ProgressBar) findViewById(R.id.progressbar_bat);
-        _imViewRecStatus = (ImageView) findViewById(R.id.imview_rec);
-        _imViewLocation = (ImageView) findViewById(R.id.imview_loc);
-        _buttonRecord = (Button) findViewById(R.id.button_record);
-        _buttonGPS = (Button) findViewById(R.id.button_gps);
-        _buttonHibernate = (Button) findViewById(R.id.button_hibernate);
-        _buttonRecord.setOnClickListener(this);
-        _buttonGPS.setOnClickListener(this);
-        _buttonHibernate.setOnClickListener(this);
-        _editText = (EditText) findViewById(R.id.editText_note);
-        _editText.setFocusable(false);
+        mContext.registerReceiver(mBroadcastReceiver,iFilter);
+        mTextViewPercentageBat = (TextView) findViewById(R.id.percentage_bat);
+        mProgressBarBat = (ProgressBar) findViewById(R.id.progressbar_bat);
+        mImViewRecStatus = (ImageView) findViewById(R.id.imview_rec);
+        mImViewLocation = (ImageView) findViewById(R.id.imview_loc);
+        mImViewLogo = (ImageView) findViewById(R.id.imview_log);
+        mButtonRecord = (Button) findViewById(R.id.button_record);
+        ColorDrawable viewColor = (ColorDrawable) mButtonRecord.getBackground();
+        mColor = viewColor.getColor();
 
-        _editText.setOnTouchListener(new View.OnTouchListener() {
-            @Override
-            public boolean onTouch(View v, MotionEvent event) {
-
-
-                if(!_isEditing) {
-                    _editText.setFocusableInTouchMode(true);
-                    _isEditing = true;
-                }
-                    else {
-                    _editText.setFocusableInTouchMode(true);
-                    _editText.setCursorVisible(false);
-                    _isEditing = false;
-                }
-
-                return false;
-            }
-        });
-
-        _spinner = findViewById(R.id.spinner);
+        mButtonGPS = (Button) findViewById(R.id.button_gps);
+        mButtonHibernate = (Button) findViewById(R.id.button_hibernate);
+        mButtonRecord.setOnClickListener(this);
+        mButtonGPS.setOnClickListener(this);
+        mButtonHibernate.setOnClickListener(this);
+        mEditText = (EditText) findViewById(R.id.editText_note);
+        mEditText.setOnTouchListener(this);
+        mEditText.setFocusable(false);
+        mSpinner = findViewById(R.id.spinner);
+        final GraphView graph = (GraphView) findViewById(R.id.graph);
+        mScrollView = findViewById(R.id.scroll_v);
+        mScrollView.setOnTouchListener(this);
 
         ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(this,
                 R.array.graph_array, R.layout.support_simple_spinner_dropdown_item);
 
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
 
-        _spinner.setAdapter(adapter);
+        mSpinner.setAdapter(adapter);
 
-        _spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+        mSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
-            public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
-                Toast.makeText(adapterView.getContext(), "Item is " +
-                        adapterView.getItemAtPosition(i).toString(), Toast.LENGTH_LONG).show();
+            public void onItemSelected(AdapterView<?> adapterView, View view, int position, long l) {
+                mHandler.removeCallbacks(mTimer);
+                mSelectedGraphPosition = position;
+                graph.removeAllSeries();
+                mHandler.postDelayed(mTimer, 100);
             }
 
             @Override
@@ -156,17 +161,16 @@ public class EmotiBitActivity extends AppCompatActivity implements View.OnClickL
         });
 
         /*Signals*/
-        GraphView graph = (GraphView) findViewById(R.id.graph);
-        LineGraphSeries<DataPoint> series1 = new LineGraphSeries<>(new DataPoint[] {
+        mSeries1 = new LineGraphSeries<>(new DataPoint[] {
                 new DataPoint(0, 1),
                 new DataPoint(1, 5),
                 new DataPoint(2, 3),
                 new DataPoint(3, 2),
                 new DataPoint(4, 6)
         });
-        graph.addSeries(series1);
 
-        LineGraphSeries<DataPoint> series2 = new LineGraphSeries<>(new DataPoint[] {
+
+        mSeries2 = new LineGraphSeries<>(new DataPoint[] {
                 new DataPoint(0, 30),
                 new DataPoint(1, 30),
                 new DataPoint(2, 60),
@@ -174,7 +178,7 @@ public class EmotiBitActivity extends AppCompatActivity implements View.OnClickL
                 new DataPoint(4, 50)
         });
 
-        LineGraphSeries<DataPoint> series3 = new LineGraphSeries<>(new DataPoint[] {
+        mSeries3 = new LineGraphSeries<>(new DataPoint[] {
                 new DataPoint(0, 100),
                 new DataPoint(1, 20),
                 new DataPoint(2, 15),
@@ -182,39 +186,23 @@ public class EmotiBitActivity extends AppCompatActivity implements View.OnClickL
                 new DataPoint(4, 70)
         });
 
-// set second scale
-        graph.getSecondScale().addSeries(series2);
-// the y bounds are always manual for second scale
-        graph.getSecondScale().setMinY(0);
-        graph.getSecondScale().setMaxY(100);
-        series2.setColor(Color.RED);
-
-        graph.getSecondScale().addSeries(series3);
-// the y bounds are always manual for second scale
-        graph.getSecondScale().setMinY(0);
-        graph.getSecondScale().setMaxY(100);
-        series3.setColor(Color.BLACK);
-
-        series1.setTitle("ACC_X");
-        series2.setTitle("ACC_Y");
-        series3.setTitle("ACC_Z");
         graph.getLegendRenderer().setVisible(true);
         graph.getLegendRenderer().setAlign(LegendRenderer.LegendAlign.TOP);
-
 
         graph.setOnTouchListener(new OnSwipeTouchListener(this){
 
             @Override
             public void onSwipeLeft() {
-
-
+                mSelectedGraphPosition--;
+                mSpinner.setSelection(mSelectedGraphPosition);
             }
 
             @Override
             public void onSwipeRight() {
-
-
+                mSelectedGraphPosition++;
+                mSpinner.setSelection(mSelectedGraphPosition);
             }
+
 
         });
 
@@ -223,6 +211,57 @@ public class EmotiBitActivity extends AppCompatActivity implements View.OnClickL
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
+
+
+        mTimer = new Runnable() {
+            @Override
+            public void run() {
+
+                if(mSelectedGraphPosition == 1){
+                    graph.removeAllSeries();
+                    graph.addSeries(mSeries1);
+                    mSeries1.setTitle("ACC_X");
+                }
+                if(mSelectedGraphPosition == 2){
+                    graph.removeAllSeries();
+                    // set second scale
+                    graph.addSeries(mSeries2);
+                    // the y bounds are always manual for second scale
+                    mSeries2.setColor(Color.RED);
+                    mSeries2.setTitle("ACC_Y");
+                }
+                if(mSelectedGraphPosition == 3){
+                    graph.removeAllSeries();
+                    graph.addSeries(mSeries3);
+                    // the y bounds are always manual for second scale
+                    mSeries3.setColor(Color.BLACK);
+                    mSeries3.setTitle("ACC_Z");
+                }
+                mHandler.postDelayed(mTimer, 300);
+            }
+        };
+
+
+        mEditText.setOnEditorActionListener(new TextView.OnEditorActionListener() {
+            @Override
+            public boolean onEditorAction(TextView textView, int index, KeyEvent keyEvent) {
+
+                if (index == EditorInfo.IME_ACTION_DONE) {
+                    //  editText.clearFocus();
+                    //editText.setFocusable(false);
+                    InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
+                    imm.hideSoftInputFromWindow(mEditText.getWindowToken(), 0);
+
+                    return true;
+                }
+                return false;
+            }
+        });
+
+
+        mEditText.setTextColor(Color.GRAY);
+        mEditText.setBackgroundColor(Color.YELLOW);
+        mHandler.postDelayed(mTimer, 100);
     }
 
 
@@ -238,69 +277,99 @@ public class EmotiBitActivity extends AppCompatActivity implements View.OnClickL
 
     }
 
+    @Override
+    public boolean onTouch(View view, MotionEvent event) {
+
+        if(view == mEditText ){
+            mEditText.setFocusableInTouchMode(true);
+            mEditText.setFocusable(true);
+            mEditText.setBackgroundColor(Color.TRANSPARENT);
+            mEditText.setText("");
+            mEditText.setTextColor(Color.BLACK);
+            return false;
+        }else if(view == mScrollView && (event.getX()< mEditText.getX() || event.getX()> mEditText.getMeasuredWidth())
+                && (event.getY()< mEditText.getY()  || event.getY()> mEditText.getMeasuredHeight())){
+
+            InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
+            imm.hideSoftInputFromWindow(mEditText.getWindowToken(), 0);
+            mEditText.setFocusableInTouchMode(false);
+            mEditText.setFocusable(false);
+            if(mEditText.getText().toString().trim().compareTo("") == 0)
+            {
+                mEditText.setBackgroundColor(Color.YELLOW);
+                mEditText.setText("Add a note");
+                mEditText.setTextColor(Color.GRAY);
+            }
+            return false;
+        }
+        return false;
+    }
+
 
     @Override
     public void onClick(View view) {
 
-
-        if( view == _buttonRecord)
+        if( view == mButtonRecord)
         {
-            int color = 0;
-            if(!_isRecord)
+            if(!mIsRecord)
             {
-                color = _buttonRecord.getHighlightColor();
-                _imViewRecStatus.setImageResource(R.drawable.record_on);
-                _buttonRecord.setText("Stop Recording");
-                _buttonRecord.setBackgroundColor(Color.RED);
-                _isRecord = true;
+                mImViewRecStatus.setImageResource(R.drawable.rec_64);
+                mImViewRecStatus.setVisibility(View.VISIBLE);
+                mButtonRecord.setText("Stop Recording");
+                mButtonRecord.setBackgroundColor(Color.RED);
+                mIsRecord = true;
 
             }else{
-                _imViewRecStatus.setImageResource(R.drawable.record_off);
-                _buttonRecord.setText("Record Datas");
-                _buttonRecord.setBackgroundColor(color);
-                _isRecord = false;
+                mImViewRecStatus.setImageResource(R.drawable.rec_64);
+                mImViewRecStatus.setVisibility(View.INVISIBLE);
+                mButtonRecord.setText("Record Datas");
+                mButtonRecord.setBackgroundColor(mColor);
+                mIsRecord = false;
             }
         }
-        else if ( view == _buttonHibernate)
+        else if ( view == mButtonHibernate)
         {
-            if(!_isHibernate)
+            if(!mIsHibernate)
             {
-                _buttonHibernate.setText("Wake");
-                _imViewRecStatus.setImageResource(R.drawable.logo_emotioff);
-                _isHibernate = true;
+                mButtonHibernate.setText("Wake");
+                mImViewLogo.setImageResource(R.drawable.logo_hib_72);
+                mIsHibernate = true;
             }else{
-                _buttonHibernate.setText("Hibernate");
-                _imViewRecStatus.setImageResource(R.drawable.record_off);
-                _isHibernate = false;
+                mButtonHibernate.setText("Hibernate");
+                mImViewLogo.setImageResource(R.drawable.logo_wake_72);
+                mIsHibernate = false;
             }
         }
-        else if( view == _buttonGPS)
+        else if( view == mButtonGPS)
         {
-            if(!_isGPS)
+            if(!mIsGPS)
             {
-                _buttonGPS.setText("Stop GPS");
-                _imViewLocation.setVisibility(View.VISIBLE);
-                _isGPS = true;
+                mButtonGPS.setText("Stop GPS");
+                mImViewLocation.setVisibility(View.VISIBLE);
+                mIsGPS = true;
             }else{
-                _buttonGPS.setText("Start GPS");
-                _imViewLocation.setVisibility(View.INVISIBLE);
-                _isGPS = false;
+                mButtonGPS.setText("Start GPS");
+                mImViewLocation.setVisibility(View.INVISIBLE);
+                mIsGPS = false;
             }
         }
+    }
+
+    public void sendNote(View view) {
 
     }
 
     @Override
     public void onMapReady(GoogleMap googleMap) {
-        _map = googleMap;
+        mMap = googleMap;
 
-        _map.setOnMyLocationButtonClickListener(onMyLocationButtonClickListener);
-        _map.setOnMyLocationClickListener(onMyLocationClickListener);
+        mMap.setOnMyLocationButtonClickListener(onMyLocationButtonClickListener);
+        mMap.setOnMyLocationClickListener(onMyLocationClickListener);
 
         askForCurrentLocation();
 
-        _map.getUiSettings().setZoomControlsEnabled(true);
-        _map.setMinZoomPreference(11);
+        mMap.getUiSettings().setZoomControlsEnabled(true);
+        mMap.setMinZoomPreference(11);
     }
 
     private void askForCurrentLocation() {
@@ -312,8 +381,8 @@ public class EmotiBitActivity extends AppCompatActivity implements View.OnClickL
                     Manifest.permission.ACCESS_FINE_LOCATION,
                     Manifest.permission.ACCESS_FINE_LOCATION}, LOCATION_PERMISSION_REQUEST_CODE);
 
-        } else if (_map != null) {
-            _map.setMyLocationEnabled(true);
+        } else if (mMap != null) {
+            mMap.setMyLocationEnabled(true);
             statusCheck();
 
         }
@@ -345,7 +414,7 @@ public class EmotiBitActivity extends AppCompatActivity implements View.OnClickL
                         "showing default location",
                 Toast.LENGTH_SHORT).show();
         LatLng coord = new LatLng(48.351633, -71.138242);
-        _map.moveCamera(CameraUpdateFactory.newLatLng(coord));
+        mMap.moveCamera(CameraUpdateFactory.newLatLng(coord));
     }
 
 
@@ -354,7 +423,7 @@ public class EmotiBitActivity extends AppCompatActivity implements View.OnClickL
             new GoogleMap.OnMyLocationButtonClickListener() {
                 @Override
                 public boolean onMyLocationButtonClick() {
-                    _map.setMinZoomPreference(15);
+                    mMap.setMinZoomPreference(15);
                     return false;
                 }
             };
@@ -364,7 +433,7 @@ public class EmotiBitActivity extends AppCompatActivity implements View.OnClickL
                 @Override
                 public void onMyLocationClick(@NonNull Location location) {
 
-                    _map.setMinZoomPreference(12);
+                    mMap.setMinZoomPreference(12);
 
                     CircleOptions circleOptions = new CircleOptions();
                     circleOptions.center(new LatLng(location.getLatitude(),
@@ -374,7 +443,7 @@ public class EmotiBitActivity extends AppCompatActivity implements View.OnClickL
                     circleOptions.fillColor(Color.RED);
                     circleOptions.strokeWidth(6);
 
-                    _map.addCircle(circleOptions);
+                    mMap.addCircle(circleOptions);
                 }
             };
 

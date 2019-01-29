@@ -1,20 +1,15 @@
 package com.lab.uqac.emotibit.application.launcher;
 
 import android.content.Intent;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
-import android.view.Gravity;
 import android.view.View;
 import android.widget.Button;
-import android.widget.CheckBox;
-import android.widget.CompoundButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
-import android.widget.Space;
-import android.widget.Switch;
-import android.widget.Toast;
 
 
 public class MainActivity extends AppCompatActivity {
@@ -76,9 +71,18 @@ public class MainActivity extends AppCompatActivity {
             Button button = new Button(MainActivity.this);
             button.setText("EmotiBit " + _index);
             button.setOnClickListener(buttonListener);
-            button.setCompoundDrawablesWithIntrinsicBounds(0, 0, R.drawable.logo_emotion_72, 0);
 
-            LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(50,50);
+            button.setCompoundDrawablesWithIntrinsicBounds(0, 0, R.drawable.logo_wake_72, 0);
+
+            LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(10,10);
+
+            // Set the height of this ImageButton
+            layoutParams.height = 50;
+
+            // Set the width of that ImageButton
+            layoutParams.width = 50;
+
+            // Apply the updated layout parameters to last ImageButton
             button.setLayoutParams(layoutParams);
 
             _verticalLayout.addView(button, _params);
