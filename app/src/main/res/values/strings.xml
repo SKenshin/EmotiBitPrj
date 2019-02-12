@@ -7,11 +7,12 @@
         <item>ACC</item>
         <item>GYRO</item>
         <item>MAGN</item>
-        <item>PPG</item>
-        <item>PPGR</item>
         <item>EDA</item>
-        <item>TEMP</item>
         <item>HUM</item>
+        <item>PPGGRN</item>
+        <item>PPGIR</item>
+        <item>PPGR</item>
+        <item>TEMP</item>
+        <item>THERM</item>
     </string-array>
-
 </resources>
