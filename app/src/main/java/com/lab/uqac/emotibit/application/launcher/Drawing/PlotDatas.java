@@ -258,7 +258,7 @@ public class PlotDatas {
                     mGraphView.getViewport().setXAxisBoundsManual(true);
                     mGraphView.getViewport().setMinX(x <= 10 ? 0 : x - 10);
                     mGraphView.getViewport().setMaxX(x);
-
+                    mGraphView.getLegendRenderer().setVisible(false);
                     x = x + 0.1;
                 }
 
@@ -272,7 +272,7 @@ public class PlotDatas {
                     mGraphView.getViewport().setXAxisBoundsManual(true);
                     mGraphView.getViewport().setMinX(x <= 10 ? 0 : x - 10);
                     mGraphView.getViewport().setMaxX(x);
-
+                    mGraphView.getLegendRenderer().setVisible(false);
                     x = x + 0.1;
                 }
 
@@ -286,7 +286,7 @@ public class PlotDatas {
                     mGraphView.getViewport().setXAxisBoundsManual(true);
                     mGraphView.getViewport().setMinX(x <= 10 ? 0 : x - 10);
                     mGraphView.getViewport().setMaxX(x);
-
+                    mGraphView.getLegendRenderer().setVisible(false);
                     x = x + 0.1;
                 }
 

@@ -14,7 +14,9 @@ import com.lab.uqac.emotibit.application.launcher.R;
 import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 public class EmotiBitButton {
 
@@ -58,6 +60,26 @@ public class EmotiBitButton {
             mMapButton.put(button, inetAddress);
 
             mIndex++;
+        }
+    }
+
+
+   public void redrawButtons(){
+
+        for (Map.Entry<View, InetAddress> entry : mMapButton.entrySet()) {
+            View key = entry.getKey();
+
+            LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(10, 10);
+
+            layoutParams.height = 50;
+
+            layoutParams.width = 50;
+
+            key.setLayoutParams(layoutParams);
+
+            mVerticalLayout.addView(key, mParams);
+
+            mParams.setMargins(0, 50, 0, 0);
         }
     }
 

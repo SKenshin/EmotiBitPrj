@@ -216,7 +216,6 @@ public class EmotiBitActivity extends AppCompatActivity implements View.OnClickL
         mapFragment.getMapAsync(this);
 
 
-
         mEditText.setOnEditorActionListener(new TextView.OnEditorActionListener() {
             @Override
             public boolean onEditorAction(TextView textView, int index, KeyEvent keyEvent) {

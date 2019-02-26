@@ -93,13 +93,14 @@ public class MainActivity extends AppCompatActivity {
     protected void onPause() {
         super.onPause();
         mConnection.end();
-        mMapButton.clear();
+        //mMapButton.clear();
     }
 
     @Override
     protected void onResume() {
         super.onResume();
         mConnection.start();
+        mEmotiBitButton.redrawButtons();
     }
 
 
