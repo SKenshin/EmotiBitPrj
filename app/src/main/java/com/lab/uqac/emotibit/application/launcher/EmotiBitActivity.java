@@ -13,7 +13,9 @@ import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.location.Location;
 import android.location.LocationManager;
+import android.os.AsyncTask;
 import android.os.BatteryManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.annotation.NonNull;
@@ -21,6 +23,7 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
@@ -48,6 +51,20 @@ import com.jjoe64.graphview.GraphView;
 import com.jjoe64.graphview.LegendRenderer;
 import com.jjoe64.graphview.series.DataPoint;
 import com.jjoe64.graphview.series.LineGraphSeries;
+import com.lab.uqac.emotibit.application.launcher.Datas.ExtractedDatas;
+import com.lab.uqac.emotibit.application.launcher.Datas.ExtractionDatas;
+import com.lab.uqac.emotibit.application.launcher.Datas.MessageGenerator;
+import com.lab.uqac.emotibit.application.launcher.Datas.TypesDatas;
+import com.lab.uqac.emotibit.application.launcher.Drawing.PlotDatas;
+
+import java.io.IOException;
+import java.net.DatagramPacket;
+import java.net.DatagramSocket;
+import java.net.InetAddress;
+import java.net.SocketAddress;
+import java.net.SocketException;
+import java.util.ArrayList;
+import java.util.HashMap;
 
 import listener.OnSwipeTouchListener;
 
@@ -56,47 +73,44 @@ public class EmotiBitActivity extends AppCompatActivity implements View.OnClickL
     private Context mContext;
 
     private TextView mTextViewPercentageBat;
+    private TextView mTextViewIP;
+    private TextView mTextViewGPS;
+    private TextView mTextViewHib;
     private ProgressBar mProgressBarBat;
-    private int mProgressStatus = 0;
     private ImageView mImViewRecStatus;
     private ImageView mImViewLocation;
     private ImageView mImViewLogo;
     private Button mButtonRecord;
     private Button mButtonGPS;
     private Button mButtonHibernate;
+    private Button mButtonSendNote;
     private boolean mIsRecord = false;
     private boolean mIsHibernate = false;
     private boolean mIsGPS = false;
     private GoogleMap mMap;
     private EditText mEditText;
-    private boolean mIsEditing = false;
     private Spinner mSpinner;
-    private final Handler mHandler = new Handler();
     private LineGraphSeries<DataPoint> mSeries1;
     private LineGraphSeries<DataPoint> mSeries2;
     private LineGraphSeries<DataPoint> mSeries3;
     private int mSelectedGraphPosition = 0;
-    private Runnable mTimer;
     private ScrollView mScrollView;
     private int mColor;
+    private AsyncTask<Void, String, Void> mAsynck;
+    private ExtractionDatas mExtraction;
+    private PlotDatas mPlotDatas;
+    private HashMap<String, TypesDatas> mMapGraphSelector;
+    private DatagramSocket mSocket;
+    private int mPort;
+    private DatagramPacket mDatagramPacketReceive;
+    private GraphView mGraphView;
+    private InetAddress mInetAdress;
+    private AsyncTask<Void, String, Void> mSendActionTask;
+
 
     private static final int LOCATION_PERMISSION_REQUEST_CODE = 1;
 
     private static final String LOG_TAG = EmotiBitActivity.class.getSimpleName();
-
-    private BroadcastReceiver mBroadcastReceiver = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-
-            int scale = intent.getIntExtra(BatteryManager.EXTRA_SCALE,-1);
-
-            int level = intent.getIntExtra(BatteryManager.EXTRA_LEVEL,-1);
-            float percentage = level/ (float) scale;
-            mProgressStatus = (int)((percentage)*100);
-            mTextViewPercentageBat.setText("" + mProgressStatus + "%");
-            mProgressBarBat.setProgress(mProgressStatus);
-        }
-    };
 
 
     @SuppressLint("ClickableViewAccessibility")
@@ -105,17 +119,23 @@ public class EmotiBitActivity extends AppCompatActivity implements View.OnClickL
         requestWindowFeature(Window.FEATURE_ACTION_BAR);
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_emotibit);
-
-        //getSupportActionBar().setDisplayHomeAsUpEnabled(false);
-
         Intent intent = getIntent();
-
         String title = intent.getStringExtra("selected");
-        getSupportActionBar().setTitle(title);
 
+        mPort = Integer.valueOf(getString(R.string.port_number));
+        mInetAdress = (InetAddress) intent.getSerializableExtra("address");
+       // Log.d("CHOUF", "time = " + mInetAdress.getHostName());
+        getSupportActionBar().setTitle(title);
         mContext = getApplicationContext();
-        IntentFilter iFilter = new IntentFilter(Intent.ACTION_BATTERY_CHANGED);
-        mContext.registerReceiver(mBroadcastReceiver,iFilter);
+        mTextViewGPS = (TextView) findViewById(R.id.text_gps);
+        mTextViewIP = (TextView) findViewById(R.id.text_ip);
+        mTextViewHib = (TextView) findViewById(R.id.text_hibernate);
+
+        mTextViewHib.setText("Hibernate: "+ "OFF");
+        mTextViewGPS.setText("GPS: " + "OFF");
+
+
+
         mTextViewPercentageBat = (TextView) findViewById(R.id.percentage_bat);
         mProgressBarBat = (ProgressBar) findViewById(R.id.progressbar_bat);
         mImViewRecStatus = (ImageView) findViewById(R.id.imview_rec);
@@ -127,6 +147,8 @@ public class EmotiBitActivity extends AppCompatActivity implements View.OnClickL
 
         mButtonGPS = (Button) findViewById(R.id.button_gps);
         mButtonHibernate = (Button) findViewById(R.id.button_hibernate);
+        mButtonSendNote = (Button) findViewById(R.id.button_send);
+        mButtonSendNote.setOnClickListener(this);
         mButtonRecord.setOnClickListener(this);
         mButtonGPS.setOnClickListener(this);
         mButtonHibernate.setOnClickListener(this);
@@ -134,11 +156,11 @@ public class EmotiBitActivity extends AppCompatActivity implements View.OnClickL
         mEditText.setOnTouchListener(this);
         mEditText.setFocusable(false);
         mSpinner = findViewById(R.id.spinner);
-        final GraphView graph = (GraphView) findViewById(R.id.graph);
+        mGraphView = (GraphView) findViewById(R.id.graph);
         mScrollView = findViewById(R.id.scroll_v);
         mScrollView.setOnTouchListener(this);
 
-        ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(this,
+        final ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(this,
                 R.array.graph_array, R.layout.support_simple_spinner_dropdown_item);
 
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
@@ -148,10 +170,7 @@ public class EmotiBitActivity extends AppCompatActivity implements View.OnClickL
         mSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> adapterView, View view, int position, long l) {
-                mHandler.removeCallbacks(mTimer);
                 mSelectedGraphPosition = position;
-                graph.removeAllSeries();
-                mHandler.postDelayed(mTimer, 100);
             }
 
             @Override
@@ -161,45 +180,29 @@ public class EmotiBitActivity extends AppCompatActivity implements View.OnClickL
         });
 
         /*Signals*/
-        mSeries1 = new LineGraphSeries<>(new DataPoint[] {
-                new DataPoint(0, 1),
-                new DataPoint(1, 5),
-                new DataPoint(2, 3),
-                new DataPoint(3, 2),
-                new DataPoint(4, 6)
-        });
+        mSeries1 = new LineGraphSeries<>(new DataPoint[] {});
+
+        mSeries2 = new LineGraphSeries<>(new DataPoint[] {});
+
+        mSeries3 = new LineGraphSeries<>(new DataPoint[] {});
 
 
-        mSeries2 = new LineGraphSeries<>(new DataPoint[] {
-                new DataPoint(0, 30),
-                new DataPoint(1, 30),
-                new DataPoint(2, 60),
-                new DataPoint(3, 20),
-                new DataPoint(4, 50)
-        });
+        mGraphView.getLegendRenderer().setAlign(LegendRenderer.LegendAlign.TOP);
 
-        mSeries3 = new LineGraphSeries<>(new DataPoint[] {
-                new DataPoint(0, 100),
-                new DataPoint(1, 20),
-                new DataPoint(2, 15),
-                new DataPoint(3, 30),
-                new DataPoint(4, 70)
-        });
-
-        graph.getLegendRenderer().setVisible(true);
-        graph.getLegendRenderer().setAlign(LegendRenderer.LegendAlign.TOP);
-
-        graph.setOnTouchListener(new OnSwipeTouchListener(this){
+        mGraphView.setOnTouchListener(new OnSwipeTouchListener(this){
 
             @Override
             public void onSwipeLeft() {
-                mSelectedGraphPosition--;
+                if(mSelectedGraphPosition > 0)
+                    mSelectedGraphPosition--;
+
                 mSpinner.setSelection(mSelectedGraphPosition);
             }
 
             @Override
             public void onSwipeRight() {
-                mSelectedGraphPosition++;
+                if(mSelectedGraphPosition < adapter.getCount() - 1)
+                    mSelectedGraphPosition++;
                 mSpinner.setSelection(mSelectedGraphPosition);
             }
 
@@ -212,34 +215,6 @@ public class EmotiBitActivity extends AppCompatActivity implements View.OnClickL
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
 
-
-        mTimer = new Runnable() {
-            @Override
-            public void run() {
-
-                if(mSelectedGraphPosition == 1){
-                    graph.removeAllSeries();
-                    graph.addSeries(mSeries1);
-                    mSeries1.setTitle("ACC_X");
-                }
-                if(mSelectedGraphPosition == 2){
-                    graph.removeAllSeries();
-                    // set second scale
-                    graph.addSeries(mSeries2);
-                    // the y bounds are always manual for second scale
-                    mSeries2.setColor(Color.RED);
-                    mSeries2.setTitle("ACC_Y");
-                }
-                if(mSelectedGraphPosition == 3){
-                    graph.removeAllSeries();
-                    graph.addSeries(mSeries3);
-                    // the y bounds are always manual for second scale
-                    mSeries3.setColor(Color.BLACK);
-                    mSeries3.setTitle("ACC_Z");
-                }
-                mHandler.postDelayed(mTimer, 300);
-            }
-        };
 
 
         mEditText.setOnEditorActionListener(new TextView.OnEditorActionListener() {
@@ -258,23 +233,58 @@ public class EmotiBitActivity extends AppCompatActivity implements View.OnClickL
             }
         });
 
-
         mEditText.setTextColor(Color.GRAY);
         mEditText.setBackgroundColor(Color.YELLOW);
-        mHandler.postDelayed(mTimer, 100);
+
+        mGraphView.addSeries(mSeries1);
+        mGraphView.addSeries(mSeries2);
+        mGraphView.addSeries(mSeries3);
+
+        mSeries1.setColor(Color.RED);
+        mSeries2.setColor(Color.BLUE);
+        mSeries3.setColor(Color.BLACK);
+
+        mPlotDatas = new PlotDatas(mGraphView, mSeries1, mSeries2, mSeries3);
+
+        mMapGraphSelector = TypesDatas.mapString();
+
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        mAsynck.cancel(true);
+        if(mSocket != null)
+            mSocket.close();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        receiveAndPlot();
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        mAsynck.cancel(true);
+        if(mSocket != null)
+            mSocket.close();
     }
 
 
-    public void displaySignals(View view){
-
-        Intent intent = new Intent(this, SignalsActivity.class);
-
-        startActivity(intent);
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        mAsynck.cancel(true);
+        if(mSocket != null)
+            mSocket.close();
     }
 
-    public void startRecord(View view){
+    private void setBatteryLevel(int value){
 
-
+        mTextViewPercentageBat.setText("" + value + "%");
+        mProgressBarBat.setProgress(value);
     }
 
     @Override
@@ -313,6 +323,7 @@ public class EmotiBitActivity extends AppCompatActivity implements View.OnClickL
         {
             if(!mIsRecord)
             {
+                sendAction(TypesDatas.RB);
                 mImViewRecStatus.setImageResource(R.drawable.rec_64);
                 mImViewRecStatus.setVisibility(View.VISIBLE);
                 mButtonRecord.setText("Stop Recording");
@@ -320,6 +331,7 @@ public class EmotiBitActivity extends AppCompatActivity implements View.OnClickL
                 mIsRecord = true;
 
             }else{
+                sendAction(TypesDatas.RE);
                 mImViewRecStatus.setImageResource(R.drawable.rec_64);
                 mImViewRecStatus.setVisibility(View.INVISIBLE);
                 mButtonRecord.setText("Record Datas");
@@ -329,16 +341,7 @@ public class EmotiBitActivity extends AppCompatActivity implements View.OnClickL
         }
         else if ( view == mButtonHibernate)
         {
-            if(!mIsHibernate)
-            {
-                mButtonHibernate.setText("Wake");
-                mImViewLogo.setImageResource(R.drawable.logo_hib_72);
-                mIsHibernate = true;
-            }else{
-                mButtonHibernate.setText("Hibernate");
-                mImViewLogo.setImageResource(R.drawable.logo_wake_72);
-                mIsHibernate = false;
-            }
+            showConfirmationMessage();
         }
         else if( view == mButtonGPS)
         {
@@ -347,16 +350,56 @@ public class EmotiBitActivity extends AppCompatActivity implements View.OnClickL
                 mButtonGPS.setText("Stop GPS");
                 mImViewLocation.setVisibility(View.VISIBLE);
                 mIsGPS = true;
+                statusGPSCheck();
             }else{
                 mButtonGPS.setText("Start GPS");
                 mImViewLocation.setVisibility(View.INVISIBLE);
                 mIsGPS = false;
             }
         }
+        else if( view == mButtonSendNote)
+        {
+            sendAction(TypesDatas.UN);
+        }
     }
 
-    public void sendNote(View view) {
+    private void showConfirmationMessage(){
 
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+
+        builder.setTitle("Confirm action");
+        builder.setMessage("Do you really want to send this action ?");
+
+        builder.setPositiveButton("YES", new DialogInterface.OnClickListener() {
+
+            public void onClick(DialogInterface dialog, int which) {
+                if(!mIsHibernate)
+                {
+                    sendAction(TypesDatas.MH);
+                    mButtonHibernate.setText("Wake");
+                    mImViewLogo.setImageResource(R.drawable.logo_hib_72);
+                    mIsHibernate = true;
+                    mTextViewHib.setText("Hibernate: " + "ON");
+                }else{
+                    mButtonHibernate.setText("Hibernate");
+                    mImViewLogo.setImageResource(R.drawable.logo_wake_72);
+                    mIsHibernate = false;
+                    mTextViewHib.setText("Hibernate: " + "OFF");
+                }
+                dialog.dismiss();
+            }
+        });
+
+        builder.setNegativeButton("NO", new DialogInterface.OnClickListener() {
+
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.dismiss();
+            }
+        });
+
+        AlertDialog alert = builder.create();
+        alert.show();
     }
 
     @Override
@@ -383,7 +426,7 @@ public class EmotiBitActivity extends AppCompatActivity implements View.OnClickL
 
         } else if (mMap != null) {
             mMap.setMyLocationEnabled(true);
-            statusCheck();
+            statusGPSCheck();
 
         }
     }
@@ -448,7 +491,7 @@ public class EmotiBitActivity extends AppCompatActivity implements View.OnClickL
             };
 
 
-    public void statusCheck() {
+    public void statusGPSCheck() {
         final LocationManager manager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
 
         if (!manager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
@@ -464,14 +507,115 @@ public class EmotiBitActivity extends AppCompatActivity implements View.OnClickL
                 .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
                     public void onClick(final DialogInterface dialog, final int id) {
                         startActivity(new Intent(android.provider.Settings.ACTION_LOCATION_SOURCE_SETTINGS));
+                        mTextViewGPS.setText("GPS: " + "ON");
                     }
                 })
                 .setNegativeButton("No", new DialogInterface.OnClickListener() {
                     public void onClick(final DialogInterface dialog, final int id) {
+                        mTextViewGPS.setText("GPS: " + "OFF");
                         dialog.cancel();
                     }
                 });
         final AlertDialog alert = builder.create();
         alert.show();
+    }
+
+    void receiveAndPlot()
+    {
+        mAsynck = new AsyncTask<Void, String, Void>() {
+
+            @Override
+            protected Void doInBackground(Void... voids) {
+                try {
+
+                    mSocket = new DatagramSocket(mPort);
+                    mSocket.connect(mInetAdress, mPort);
+
+                    mTextViewIP.setText("IP: " + mInetAdress.getHostName());
+
+                    while (mSocket.isConnected() && !mIsHibernate) {
+
+                        byte[] buf = new byte[10000];
+                        mDatagramPacketReceive = new DatagramPacket(buf, buf.length);
+                        mSocket.receive(mDatagramPacketReceive);
+
+                        String datas = new String(buf, 0, mDatagramPacketReceive.getLength());
+
+                        publishProgress(datas);
+                    }
+
+                } catch (SocketException e) {
+                    e.printStackTrace();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                return null;
+            }
+
+            @Override
+            protected void onProgressUpdate(String... datas) {
+                super.onProgressUpdate(datas[0]);
+
+                mExtraction = new ExtractionDatas(datas[0]);
+
+                ArrayList<ExtractedDatas> extractedDatas = mExtraction.extractDatas();
+
+                for (ExtractedDatas extrDatas : extractedDatas) {
+
+                    String dataType = extrDatas.getmDataType();
+
+                    TypesDatas typesDatas = mMapGraphSelector.get(dataType);
+
+                    Object[] values = extrDatas.getmValues();
+
+                    int selected = typesDatas.getmSelectedGraph();
+
+                    if(selected == mSelectedGraphPosition)
+                        mPlotDatas.plot(typesDatas, values);
+
+                    if(dataType.equals("B%")){
+                        setBatteryLevel(Integer.valueOf((String)values[0]));
+                    }
+                }
+            }
+
+            @Override
+            protected void onPostExecute(Void aVoid) {
+                super.onPostExecute(aVoid);
+
+                mSocket.close();
+            }
+        };
+
+        if (Build.VERSION.SDK_INT >= 11) mAsynck.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+        else mAsynck.execute();
+    }
+
+    private void sendAction(final TypesDatas typesDatas){
+
+        mSendActionTask = new AsyncTask<Void, String, Void>() {
+            @Override
+            protected Void doInBackground(Void... voids) {
+
+                try {
+                    String action = MessageGenerator.generateMessageWithLocalTime(typesDatas,
+                            1, 1, 100);
+
+                    byte[] buffer = action.getBytes();
+
+                    DatagramPacket datagramPacketSend = new DatagramPacket(buffer, buffer.length,
+                            mInetAdress, mPort);
+
+                    mSocket.send(datagramPacketSend);
+
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+
+                return null;
+            }
+        };
+
+        mSendActionTask.execute();
     }
 }

@@ -50,7 +50,6 @@
                         android:layout_marginRight="0dp"
                         android:layout_weight="1"
                         android:background="?android:attr/colorBackground"
-                        android:onClick="sendNote"
                         android:paddingLeft="0dp"
                         android:text="Send" />
                 </LinearLayout>
