@@ -64,6 +64,8 @@ public class PlotDatas {
                     mGraphView.getViewport().setMaxX(x);
                     mGraphView.getViewport().setMinY(-4);
                     mGraphView.getViewport().setMaxY(4);
+                    mSeries1.setTitle("Ax");
+                    mGraphView.getLegendRenderer().setVisible(true);
 
                     x = x + 0.1;
                 }
@@ -79,7 +81,8 @@ public class PlotDatas {
                     mGraphView.getViewport().setMaxX(x);
                     mGraphView.getViewport().setMinY(-4);
                     mGraphView.getViewport().setMaxY(4);
-
+                    mSeries2.setTitle("Ay");
+                    mGraphView.getLegendRenderer().setVisible(true);
                     x = x + 0.1;
                 }
 
@@ -95,6 +98,8 @@ public class PlotDatas {
                     mGraphView.getViewport().setMaxX(x);
                     mGraphView.getViewport().setMinY(-4);
                     mGraphView.getViewport().setMaxY(4);
+                    mSeries3.setTitle("Az");
+                    mGraphView.getLegendRenderer().setVisible(true);
                     x = x + 0.1;
                 }
 
@@ -109,6 +114,8 @@ public class PlotDatas {
                     mGraphView.getViewport().setMaxX(x);
                     mGraphView.getViewport().setMinY(-500);
                     mGraphView.getViewport().setMaxY(500);
+                    mSeries1.setTitle("Gx");
+                    mGraphView.getLegendRenderer().setVisible(true);
                     x = x + 0.1;
                 }
                 break;
@@ -123,6 +130,8 @@ public class PlotDatas {
                     mGraphView.getViewport().setMaxX(x);
                     mGraphView.getViewport().setMinY(-500);
                     mGraphView.getViewport().setMaxY(500);
+                    mSeries2.setTitle("Gy");
+                    mGraphView.getLegendRenderer().setVisible(true);
                     x = x + 0.1;
                 }
                 break;
@@ -135,6 +144,8 @@ public class PlotDatas {
                     mGraphView.getViewport().setMaxX(x);
                     mGraphView.getViewport().setMinY(-500);
                     mGraphView.getViewport().setMaxY(500);
+                    mSeries3.setTitle("Gz");
+                    mGraphView.getLegendRenderer().setVisible(true);
                     x = x + 0.1;
                 }
                 break;
@@ -148,6 +159,8 @@ public class PlotDatas {
                     mGraphView.getViewport().setMaxX(x);
                     mGraphView.getViewport().setMinY(-4800);
                     mGraphView.getViewport().setMaxY(4800);
+                    mSeries1.setTitle("Mx");
+                    mGraphView.getLegendRenderer().setVisible(true);
                     x = x + 0.1;
                 }
                 break;
@@ -161,6 +174,8 @@ public class PlotDatas {
                     mGraphView.getViewport().setMaxX(x);
                     mGraphView.getViewport().setMinY(-4800);
                     mGraphView.getViewport().setMaxY(4800);
+                    mSeries2.setTitle("My");
+                    mGraphView.getLegendRenderer().setVisible(true);
                     x = x + 0.1;
                 }
                 break;
@@ -174,6 +189,8 @@ public class PlotDatas {
                     mGraphView.getViewport().setMaxX(x);
                     mGraphView.getViewport().setMinY(-4800);
                     mGraphView.getViewport().setMaxY(+4800);
+                    mSeries3.setTitle("Mz");
+                    mGraphView.getLegendRenderer().setVisible(true);
                     x = x + 0.1;
                 }
                 break;
@@ -186,7 +203,7 @@ public class PlotDatas {
                     mGraphView.getViewport().setXAxisBoundsManual(true);
                     mGraphView.getViewport().setMinX(x <= 10 ? 0 : x - 10);
                     mGraphView.getViewport().setMaxX(x);
-
+                    mGraphView.getLegendRenderer().setVisible(false);
                     x = x + 0.1;
                 }
 
@@ -200,7 +217,7 @@ public class PlotDatas {
                     mGraphView.getViewport().setXAxisBoundsManual(true);
                     mGraphView.getViewport().setMinX(x <= 10 ? 0 : x - 10);
                     mGraphView.getViewport().setMaxX(x);
-
+                    mGraphView.getLegendRenderer().setVisible(false);
                     x = x + 0.1;
                 }
 
@@ -213,7 +230,7 @@ public class PlotDatas {
                     mGraphView.getViewport().setXAxisBoundsManual(true);
                     mGraphView.getViewport().setMinX(x <= 10 ? 0 : x - 10);
                     mGraphView.getViewport().setMaxX(x);
-
+                    mGraphView.getLegendRenderer().setVisible(false);
                     x = x + 0.1;
                 }
 
@@ -227,7 +244,7 @@ public class PlotDatas {
                     mGraphView.getViewport().setXAxisBoundsManual(true);
                     mGraphView.getViewport().setMinX(x <= 10 ? 0 : x - 10);
                     mGraphView.getViewport().setMaxX(x);
-
+                    mGraphView.getLegendRenderer().setVisible(false);
                     x = x + 0.1;
                 }
 

@@ -248,6 +248,7 @@ public class EmotiBitActivity extends AppCompatActivity implements View.OnClickL
 
         mMapGraphSelector = TypesDatas.mapString();
 
+        mSpinner.setSelection(TypesDatas.PPGGRN.getmSelectedGraph());
     }
 
     @Override
@@ -323,7 +324,7 @@ public class EmotiBitActivity extends AppCompatActivity implements View.OnClickL
         {
             if(!mIsRecord)
             {
-                sendAction(TypesDatas.RB);
+                sendAction(TypesDatas.RB, "");
                 mImViewRecStatus.setImageResource(R.drawable.rec_64);
                 mImViewRecStatus.setVisibility(View.VISIBLE);
                 mButtonRecord.setText("Stop Recording");
@@ -331,7 +332,7 @@ public class EmotiBitActivity extends AppCompatActivity implements View.OnClickL
                 mIsRecord = true;
 
             }else{
-                sendAction(TypesDatas.RE);
+                sendAction(TypesDatas.RE, "");
                 mImViewRecStatus.setImageResource(R.drawable.rec_64);
                 mImViewRecStatus.setVisibility(View.INVISIBLE);
                 mButtonRecord.setText("Record Datas");
@@ -359,7 +360,12 @@ public class EmotiBitActivity extends AppCompatActivity implements View.OnClickL
         }
         else if( view == mButtonSendNote)
         {
-            sendAction(TypesDatas.UN);
+            String note = mEditText.getText().toString();
+            if(!note.isEmpty())
+                sendAction(TypesDatas.UN, note);
+            else
+                Toast.makeText(this, "You need to insert a note before sending !", Toast.LENGTH_LONG);
+
         }
     }
 
@@ -375,7 +381,7 @@ public class EmotiBitActivity extends AppCompatActivity implements View.OnClickL
             public void onClick(DialogInterface dialog, int which) {
                 if(!mIsHibernate)
                 {
-                    sendAction(TypesDatas.MH);
+                    sendAction(TypesDatas.MH, "");
                     mButtonHibernate.setText("Wake");
                     mImViewLogo.setImageResource(R.drawable.logo_hib_72);
                     mIsHibernate = true;
@@ -591,7 +597,7 @@ public class EmotiBitActivity extends AppCompatActivity implements View.OnClickL
         else mAsynck.execute();
     }
 
-    private void sendAction(final TypesDatas typesDatas){
+    private void sendAction(final TypesDatas typesDatas, final String datas){
 
         mSendActionTask = new AsyncTask<Void, String, Void>() {
             @Override
@@ -599,7 +605,7 @@ public class EmotiBitActivity extends AppCompatActivity implements View.OnClickL
 
                 try {
                     String action = MessageGenerator.generateMessageWithLocalTime(typesDatas,
-                            1, 1, 100);
+                            1, 1, 100, datas);
 
                     byte[] buffer = action.getBytes();
 

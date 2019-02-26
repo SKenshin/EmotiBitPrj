@@ -112,7 +112,7 @@ public class Connection {
         mHandler.postDelayed(mSendTask, 5000);
 
 
-        if (mReceiveTask != null && mReceiveTask.getStatus() == AsyncTask.Status.FINISHED ||
+        if (mReceiveTask != null && mReceiveTask.getStatus() == AsyncTask.Status.RUNNING ||
                 mReceiveTask.getStatus() == AsyncTask.Status.PENDING)
             mReceiveTask.execute();
 
@@ -141,7 +141,7 @@ public class Connection {
                     mSocket.setBroadcast(true);
 
                     mHelloMessage = MessageGenerator.generateMessageWithLocalTime(TypesDatas.HE,
-                            1, 1, 100);
+                            1, 1, 100, "");
                 }
 
                 if (mIndex < mMaxConnectedDevice) {

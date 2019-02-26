@@ -16,7 +16,8 @@ public class MessageGenerator {
 
 
     public static String generateMessageWithLocalTime(TypesDatas typesDatas, int dataLength,
-                                                      int protocolVersion, int reliability){
+                                                      int protocolVersion, int reliability,
+                                                      String datas){
 
         String message = "";
 
@@ -28,12 +29,16 @@ public class MessageGenerator {
         message += "," + reliability;
         message += "," + getLocalTime();
 
+        if(typesDatas == TypesDatas.UN)
+            message += "," + datas;
+
         return message;
     }
 
 
     public static String generateMessageWithUTCTime(TypesDatas typesDatas, int dataLength,
-                                                    int protocolVersion, int reliability){
+                                                    int protocolVersion, int reliability,
+                                                    String datas){
 
         String message = "";
 
@@ -44,6 +49,10 @@ public class MessageGenerator {
         message += "," + protocolVersion;
         message += "," + reliability;
         message += "," + getUTCTime();
+        message += "," + datas;
+
+        if(typesDatas == TypesDatas.UN)
+            message += "," + datas;
 
         return message;
     }

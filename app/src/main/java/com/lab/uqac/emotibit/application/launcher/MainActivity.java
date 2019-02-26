@@ -86,7 +86,7 @@ public class MainActivity extends AppCompatActivity {
 
     public void enableHotspot(View view){
 
-        mNetworkUtils.enableHotspot();
+     //   mNetworkUtils.enableHotspot();
     }
 
     @Override
