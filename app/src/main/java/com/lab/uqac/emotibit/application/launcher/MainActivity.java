@@ -1,19 +1,26 @@
 package com.lab.uqac.emotibit.application.launcher;
 
+import android.app.Activity;
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.Button;
 import android.widget.LinearLayout;
+import android.widget.Toast;
 
 import com.lab.uqac.emotibit.application.launcher.Network.Connection;
+import com.lab.uqac.emotibit.application.launcher.Network.Link.LinkEmotiBitReceptor;
 import com.lab.uqac.emotibit.application.launcher.Network.NetworkUtils;
 
 import java.lang.reflect.InvocationTargetException;
 import java.net.InetAddress;
 import java.net.SocketException;
 import java.net.UnknownHostException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import GUI.EmotiBitButton;
 
@@ -24,14 +31,20 @@ public class MainActivity extends AppCompatActivity {
 
 
     private LinearLayout mVerticalLayout;
-    private LinearLayout.LayoutParams mParams;
     private static final String LOG_TAG = MainActivity.class.getSimpleName();
-    private String mTextButton;
     private Connection mConnection;
-    private HashMap<View, InetAddress> mMapButton;
     private EmotiBitButton mEmotiBitButton;
     private Button mButtonHotspot;
-    NetworkUtils mNetworkUtils;
+    private NetworkUtils mNetworkUtils;
+    private LinkEmotiBitReceptor mLinkEmotiBitReceptor;
+
+
+
+    private int mIndex = 0;
+    private HashMap<InetAddress, View> mMapButton;
+    private LinearLayout.LayoutParams mParams;
+    private String mTextButton;
+    private List<InetAddress> mSavedList;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -40,6 +53,8 @@ public class MainActivity extends AppCompatActivity {
 
         mButtonExit = (Button) findViewById(R.id.button_exit);
         mVerticalLayout = (LinearLayout) findViewById(R.id.row_main);
+        mParams = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT);
 
         mButtonExit.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -51,13 +66,14 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        mMapButton = new HashMap<InetAddress, View>();
+        mSavedList = new ArrayList<InetAddress>();
+
         mButtonHotspot = findViewById(R.id.button_connect);
 
-        mMapButton = new HashMap<View, InetAddress>();
-
-        mEmotiBitButton = new EmotiBitButton(this, mMapButton);
-
         int maxDevice = Integer.valueOf(getString(R.string.max_devices));
+
+        mEmotiBitButton = new EmotiBitButton(this, maxDevice);
 
         mNetworkUtils = new NetworkUtils(this);
 
@@ -67,7 +83,7 @@ public class MainActivity extends AppCompatActivity {
             InetAddress broadcastAddress = mNetworkUtils.extractBroadcastAddress();
 
             if(broadcastAddress != null)
-                mConnection = new Connection(port, broadcastAddress, maxDevice, mEmotiBitButton);
+                mConnection = new Connection(port, broadcastAddress, maxDevice);
 
 
         } catch (UnknownHostException e) {
@@ -86,25 +102,21 @@ public class MainActivity extends AppCompatActivity {
 
     public void enableHotspot(View view){
 
-     //   mNetworkUtils.enableHotspot();
     }
 
     @Override
     protected void onPause() {
         super.onPause();
-        mConnection.end();
-        //mMapButton.clear();
+        mLinkEmotiBitReceptor.stop();
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        mConnection.start();
-        mEmotiBitButton.redrawButtons();
+        mLinkEmotiBitReceptor = new LinkEmotiBitReceptor(mConnection, mEmotiBitButton);
+        mLinkEmotiBitReceptor.start();
+        Toast.makeText(this, "EmotiBit search in progress", Toast.LENGTH_LONG).show();
     }
-
-
-
 
 
 }

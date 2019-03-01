@@ -49,28 +49,38 @@
                         android:layout_height="match_parent"
                         android:layout_marginRight="0dp"
                         android:layout_weight="1"
-                        android:background="?android:attr/colorBackground"
+                        android:background="@drawable/anim"
+                        android:clickable="true"
                         android:paddingLeft="0dp"
                         android:text="Send" />
                 </LinearLayout>
-
                 <TextView
                     android:id="@+id/text_ip"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="IP : 127.0.0.1" />
-
                 <TextView
                     android:id="@+id/text_gps"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="GPS Status : " />
-
                 <TextView
                     android:id="@+id/text_hibernate"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="Hibernate : No" />
+
+                <TextView
+                    android:id="@+id/text_clipping"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Clipping   : 0" />
+
+                <TextView
+                    android:id="@+id/text_overflow"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Overflow  : 0" />
             </LinearLayout>
 
             <LinearLayout
@@ -300,10 +310,23 @@
                 android:layout_height="wrap_content"
                 android:prompt="@string/prompt" />
 
-            <com.jjoe64.graphview.GraphView
-                android:id="@+id/graph"
+            <android.support.constraint.ConstraintLayout
                 android:layout_width="match_parent"
-                android:layout_height="200dip" />
+                android:layout_height="match_parent">
+
+                <com.jjoe64.graphview.GraphView
+                    android:id="@+id/graph"
+                    android:layout_width="326dp"
+                    android:layout_height="145dp"
+                    android:layout_marginStart="8dp"
+                    android:layout_marginTop="8dp"
+                    android:layout_marginEnd="8dp"
+                    android:layout_marginBottom="8dp"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
+            </android.support.constraint.ConstraintLayout>
 
             <fragment
                 android:id="@+id/map"

@@ -24,59 +24,42 @@ public class Connection {
     private int mPort;
     private InetAddress mAddress;
     private DatagramSocket mSocket = null;
-    private List<InetAddress> mInetAddresses;
     private int mMaxConnectedDevice;
-    private EmotiBitButton mEmotiBitButton;
-    static int mIndex = 0;
-    String mHelloMessage;
-    HandlerThread mHandlerThread;
-
-    Handler mHandler;
 
 
-    public Connection(int port, int maxConnectedDevice, EmotiBitButton emotiBitButton) {
+    public Connection(int port, int maxConnectedDevice) {
         mPort = port;
-        mInetAddresses = new ArrayList<InetAddress>();
         mMaxConnectedDevice = maxConnectedDevice;
-        mEmotiBitButton = emotiBitButton;
-        mHandlerThread = new HandlerThread("threadname");
-        mHandlerThread.start();
-        mHandler = new Handler(mHandlerThread.getLooper());
     }
 
-    public Connection(int port, DatagramSocket socket, InetAddress address,
-                      int maxConnectedDevice, EmotiBitButton emotiBitButton) {
+    public Connection(int port, DatagramSocket socket, InetAddress address, int maxConnectedDevice) {
         mPort = port;
         mSocket = socket;
         mAddress = address;
-        mInetAddresses = new ArrayList<InetAddress>();
         mMaxConnectedDevice = maxConnectedDevice;
-        mEmotiBitButton = emotiBitButton;
-        mHandlerThread = new HandlerThread("threadname");
-        mHandlerThread.start();
-        mHandler = new Handler(mHandlerThread.getLooper());
     }
 
-    public Connection(int port, InetAddress address, int maxConnectedDevice,
-                      EmotiBitButton emotiBitButton) {
+    public Connection(int port, InetAddress address, int maxConnectedDevice) {
         mPort = port;
         mAddress = address;
-        mInetAddresses = new ArrayList<InetAddress>();
         mMaxConnectedDevice = maxConnectedDevice;
-        mEmotiBitButton = emotiBitButton;
-        mHandlerThread = new HandlerThread("threadname");
-        mHandlerThread.start();
-        mHandler = new Handler(mHandlerThread.getLooper());
     }
 
 
-    public void stopConnection() {
-        if(mSocket != null) {
-            mSocket.close();
-            mSocket.disconnect();
-        }
+    public Connection(DatagramSocket socket, InetAddress address, int port) {
+        mSocket = socket;
+        mPort = port;
+        mAddress = address;
     }
 
+
+    public int getmMaxConnectedDevice() {
+        return mMaxConnectedDevice;
+    }
+
+    public void setmMaxConnectedDevice(int mMaxConnectedDevice) {
+        this.mMaxConnectedDevice = mMaxConnectedDevice;
+    }
 
     public int getmPort() {
         return mPort;
@@ -102,123 +85,5 @@ public class Connection {
         this.mSocket = mSocket;
     }
 
-    public List<InetAddress> getmInetAddresses() {
-        return mInetAddresses;
-
-    }
-
-    public void start(){
-
-        mHandler.postDelayed(mSendTask, 5000);
-
-
-        if (mReceiveTask != null && mReceiveTask.getStatus() == AsyncTask.Status.RUNNING ||
-                mReceiveTask.getStatus() == AsyncTask.Status.PENDING)
-            mReceiveTask.execute();
-
-    }
-
-    public void end(){
-        mHandler.removeCallbacks(mSendTask);
-
-        if (mReceiveTask != null && mReceiveTask.getStatus() != AsyncTask.Status.FINISHED )
-            mReceiveTask.cancel(true);
-
-        stopConnection();
-    }
-
-
-    Runnable mSendTask = new Runnable() {
-        @Override
-        public void run() {
-
-            try {
-
-
-
-                if (mSocket == null || !mSocket.isBound()) {
-                    mSocket = new DatagramSocket(mPort);
-                    mSocket.setBroadcast(true);
-
-                    mHelloMessage = MessageGenerator.generateMessageWithLocalTime(TypesDatas.HE,
-                            1, 1, 100, "");
-                }
-
-                if (mIndex < mMaxConnectedDevice) {
-
-                    byte[] buffer = mHelloMessage.getBytes();
-                    DatagramPacket datagramPacketSend = new DatagramPacket(buffer, buffer.length,
-                            mAddress, mPort);
-                    mSocket.send(datagramPacketSend);
-                    mHandler.postDelayed(mSendTask, 5000);
-                }
-                else
-                    mHandler.removeCallbacks(mSendTask);
-
-
-            } catch (SocketException e) {
-                e.printStackTrace();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }};
-
-
-    AsyncTask<Void, InetAddress, Void> mReceiveTask = new AsyncTask<Void, InetAddress, Void>() {
-        @Override
-        protected Void doInBackground(Void... voids) {
-
-            try {
-
-                while (mSocket == null || !mSocket.isBound());
-
-                while (mIndex < mMaxConnectedDevice) {
-
-                    byte[] bufferDatas = new byte[10000];
-                    DatagramPacket datagramPacketReceive = new DatagramPacket(bufferDatas, bufferDatas.length);
-
-                    mSocket.receive(datagramPacketReceive);
-
-                    String datas = new String(bufferDatas, 0, datagramPacketReceive.getLength());
-
-                    InetAddress inetAddress = datagramPacketReceive.getAddress();
-
-                    if (!mHelloMessage.equals(datas) && !mInetAddresses.contains(inetAddress)) {
-                        mInetAddresses.add(inetAddress);
-                        publishProgress(inetAddress);
-                        mIndex++;
-                    }
-
-
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            return null;
-        }
-
-
-        @Override
-        protected void onProgressUpdate(InetAddress... inetAddresses) {
-            super.onProgressUpdate(inetAddresses[0]);
-
-            mEmotiBitButton.add(inetAddresses[0]);
-        }
-
-        @Override
-        protected void onPostExecute(Void aVoid) {
-            super.onPostExecute(aVoid);
-
-            stopConnection();
-        }
-
-        @Override
-        protected void onCancelled() {
-            super.onCancelled();
-
-            stopConnection();
-        }
-
-    };
 
 }

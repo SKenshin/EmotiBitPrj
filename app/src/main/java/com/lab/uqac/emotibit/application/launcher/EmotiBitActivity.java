@@ -2,22 +2,17 @@ package com.lab.uqac.emotibit.application.launcher;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
-import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
-import android.graphics.drawable.Drawable;
 import android.location.Location;
 import android.location.LocationManager;
 import android.os.AsyncTask;
-import android.os.BatteryManager;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
@@ -56,57 +51,40 @@ import com.lab.uqac.emotibit.application.launcher.Datas.ExtractionDatas;
 import com.lab.uqac.emotibit.application.launcher.Datas.MessageGenerator;
 import com.lab.uqac.emotibit.application.launcher.Datas.TypesDatas;
 import com.lab.uqac.emotibit.application.launcher.Drawing.PlotDatas;
+import com.lab.uqac.emotibit.application.launcher.Network.Connection;
+import com.lab.uqac.emotibit.application.launcher.Network.ActionSender;
+import com.lab.uqac.emotibit.application.launcher.Network.DatasReceiver;
 
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
-import java.net.SocketAddress;
 import java.net.SocketException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.concurrent.ThreadPoolExecutor;
 
+import GUI.UpdateUI;
 import listener.OnSwipeTouchListener;
 
 public class EmotiBitActivity extends AppCompatActivity implements View.OnClickListener, OnMapReadyCallback, View.OnTouchListener {
 
     private Context mContext;
-
-    private TextView mTextViewPercentageBat;
     private TextView mTextViewIP;
     private TextView mTextViewGPS;
     private TextView mTextViewHib;
-    private ProgressBar mProgressBarBat;
-    private ImageView mImViewRecStatus;
-    private ImageView mImViewLocation;
-    private ImageView mImViewLogo;
     private Button mButtonRecord;
     private Button mButtonGPS;
     private Button mButtonHibernate;
     private Button mButtonSendNote;
-    private boolean mIsRecord = false;
-    private boolean mIsHibernate = false;
-    private boolean mIsGPS = false;
     private GoogleMap mMap;
     private EditText mEditText;
-    private Spinner mSpinner;
-    private LineGraphSeries<DataPoint> mSeries1;
-    private LineGraphSeries<DataPoint> mSeries2;
-    private LineGraphSeries<DataPoint> mSeries3;
-    private int mSelectedGraphPosition = 0;
     private ScrollView mScrollView;
     private int mColor;
-    private AsyncTask<Void, String, Void> mAsynck;
-    private ExtractionDatas mExtraction;
-    private PlotDatas mPlotDatas;
-    private HashMap<String, TypesDatas> mMapGraphSelector;
-    private DatagramSocket mSocket;
-    private int mPort;
-    private DatagramPacket mDatagramPacketReceive;
-    private GraphView mGraphView;
-    private InetAddress mInetAdress;
-    private AsyncTask<Void, String, Void> mSendActionTask;
-
+    private UpdateUI mUpdateUI;
+    private Connection mConnection = null;
+    private ActionSender mActionSender;
+    private DatasReceiver mDatasReceiver;
 
     private static final int LOCATION_PERMISSION_REQUEST_CODE = 1;
 
@@ -121,26 +99,15 @@ public class EmotiBitActivity extends AppCompatActivity implements View.OnClickL
         setContentView(R.layout.activity_emotibit);
         Intent intent = getIntent();
         String title = intent.getStringExtra("selected");
-
-        mPort = Integer.valueOf(getString(R.string.port_number));
-        mInetAdress = (InetAddress) intent.getSerializableExtra("address");
-       // Log.d("CHOUF", "time = " + mInetAdress.getHostName());
+        int port = Integer.valueOf(getString(R.string.port_number));
+        InetAddress address = (InetAddress) intent.getSerializableExtra("address");
         getSupportActionBar().setTitle(title);
         mContext = getApplicationContext();
         mTextViewGPS = (TextView) findViewById(R.id.text_gps);
-        mTextViewIP = (TextView) findViewById(R.id.text_ip);
+     //   mTextViewIP = (TextView) findViewById(R.id.text_ip);
         mTextViewHib = (TextView) findViewById(R.id.text_hibernate);
-
         mTextViewHib.setText("Hibernate: "+ "OFF");
         mTextViewGPS.setText("GPS: " + "OFF");
-
-
-
-        mTextViewPercentageBat = (TextView) findViewById(R.id.percentage_bat);
-        mProgressBarBat = (ProgressBar) findViewById(R.id.progressbar_bat);
-        mImViewRecStatus = (ImageView) findViewById(R.id.imview_rec);
-        mImViewLocation = (ImageView) findViewById(R.id.imview_loc);
-        mImViewLogo = (ImageView) findViewById(R.id.imview_log);
         mButtonRecord = (Button) findViewById(R.id.button_record);
         ColorDrawable viewColor = (ColorDrawable) mButtonRecord.getBackground();
         mColor = viewColor.getColor();
@@ -155,59 +122,8 @@ public class EmotiBitActivity extends AppCompatActivity implements View.OnClickL
         mEditText = (EditText) findViewById(R.id.editText_note);
         mEditText.setOnTouchListener(this);
         mEditText.setFocusable(false);
-        mSpinner = findViewById(R.id.spinner);
-        mGraphView = (GraphView) findViewById(R.id.graph);
         mScrollView = findViewById(R.id.scroll_v);
         mScrollView.setOnTouchListener(this);
-
-        final ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(this,
-                R.array.graph_array, R.layout.support_simple_spinner_dropdown_item);
-
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-
-        mSpinner.setAdapter(adapter);
-
-        mSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-            @Override
-            public void onItemSelected(AdapterView<?> adapterView, View view, int position, long l) {
-                mSelectedGraphPosition = position;
-            }
-
-            @Override
-            public void onNothingSelected(AdapterView<?> adapterView) {
-
-            }
-        });
-
-        /*Signals*/
-        mSeries1 = new LineGraphSeries<>(new DataPoint[] {});
-
-        mSeries2 = new LineGraphSeries<>(new DataPoint[] {});
-
-        mSeries3 = new LineGraphSeries<>(new DataPoint[] {});
-
-
-        mGraphView.getLegendRenderer().setAlign(LegendRenderer.LegendAlign.TOP);
-
-        mGraphView.setOnTouchListener(new OnSwipeTouchListener(this){
-
-            @Override
-            public void onSwipeLeft() {
-                if(mSelectedGraphPosition > 0)
-                    mSelectedGraphPosition--;
-
-                mSpinner.setSelection(mSelectedGraphPosition);
-            }
-
-            @Override
-            public void onSwipeRight() {
-                if(mSelectedGraphPosition < adapter.getCount() - 1)
-                    mSelectedGraphPosition++;
-                mSpinner.setSelection(mSelectedGraphPosition);
-            }
-
-
-        });
 
         //MAP
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
@@ -235,56 +151,38 @@ public class EmotiBitActivity extends AppCompatActivity implements View.OnClickL
         mEditText.setTextColor(Color.GRAY);
         mEditText.setBackgroundColor(Color.YELLOW);
 
-        mGraphView.addSeries(mSeries1);
-        mGraphView.addSeries(mSeries2);
-        mGraphView.addSeries(mSeries3);
+        mUpdateUI = new UpdateUI(this, mColor);
 
-        mSeries1.setColor(Color.RED);
-        mSeries2.setColor(Color.BLUE);
-        mSeries3.setColor(Color.BLACK);
+        mUpdateUI.setupSpinner();
+        mUpdateUI.initChartParameters();
 
-        mPlotDatas = new PlotDatas(mGraphView, mSeries1, mSeries2, mSeries3);
-
-        mMapGraphSelector = TypesDatas.mapString();
-
-        mSpinner.setSelection(TypesDatas.PPGGRN.getmSelectedGraph());
+        mConnection = new Connection(null, address, port);
     }
 
     @Override
     protected void onPause() {
         super.onPause();
-        mAsynck.cancel(true);
-        if(mSocket != null)
-            mSocket.close();
+
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        receiveAndPlot();
+        mDatasReceiver = new DatasReceiver(mConnection, mUpdateUI);
+        mDatasReceiver.start();
     }
 
     @Override
     protected void onStop() {
         super.onStop();
-        mAsynck.cancel(true);
-        if(mSocket != null)
-            mSocket.close();
+        mDatasReceiver.stop();
     }
 
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        mAsynck.cancel(true);
-        if(mSocket != null)
-            mSocket.close();
-    }
 
-    private void setBatteryLevel(int value){
-
-        mTextViewPercentageBat.setText("" + value + "%");
-        mProgressBarBat.setProgress(value);
     }
 
     @Override
@@ -321,22 +219,21 @@ public class EmotiBitActivity extends AppCompatActivity implements View.OnClickL
 
         if( view == mButtonRecord)
         {
-            if(!mIsRecord)
+            if(!mUpdateUI.ismIsRecord())
             {
-                sendAction(TypesDatas.RB, "");
-                mImViewRecStatus.setImageResource(R.drawable.rec_64);
-                mImViewRecStatus.setVisibility(View.VISIBLE);
-                mButtonRecord.setText("Stop Recording");
-                mButtonRecord.setBackgroundColor(Color.RED);
-                mIsRecord = true;
+                MessageGenerator messageGenerator = new MessageGenerator(TypesDatas.RB,
+                        1, 1, 100, "", false);
+
+                ActionSender actionSender = new ActionSender(messageGenerator, mConnection);
+                actionSender.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
 
             }else{
-                sendAction(TypesDatas.RE, "");
-                mImViewRecStatus.setImageResource(R.drawable.rec_64);
-                mImViewRecStatus.setVisibility(View.INVISIBLE);
-                mButtonRecord.setText("Record Datas");
-                mButtonRecord.setBackgroundColor(mColor);
-                mIsRecord = false;
+
+                MessageGenerator messageGenerator = new MessageGenerator(TypesDatas.RE,
+                        1, 1, 100, "", false);
+
+                ActionSender actionSender = new ActionSender(messageGenerator, mConnection);
+                actionSender.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
             }
         }
         else if ( view == mButtonHibernate)
@@ -345,26 +242,27 @@ public class EmotiBitActivity extends AppCompatActivity implements View.OnClickL
         }
         else if( view == mButtonGPS)
         {
-            if(!mIsGPS)
+            if(!mUpdateUI.ismIsGPS())
             {
-                mButtonGPS.setText("Stop GPS");
-                mImViewLocation.setVisibility(View.VISIBLE);
-                mIsGPS = true;
+                mUpdateUI.updateGpsObject();
                 statusGPSCheck();
             }else{
-                mButtonGPS.setText("Start GPS");
-                mImViewLocation.setVisibility(View.INVISIBLE);
-                mIsGPS = false;
+                mUpdateUI.updateGpsObject();
             }
         }
         else if( view == mButtonSendNote)
         {
             String note = mEditText.getText().toString();
-            if(!note.isEmpty())
-                sendAction(TypesDatas.UN, note);
-            else
-                Toast.makeText(this, "You need to insert a note before sending !", Toast.LENGTH_LONG);
+            if(!note.isEmpty()) {
+                MessageGenerator messageGenerator = new MessageGenerator(TypesDatas.UN,
+                        1, 1, 100, note, false);
 
+                ActionSender actionSender = new ActionSender(messageGenerator, mConnection);
+                actionSender.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+            }
+            else
+                Toast.makeText(this, "You need to insert a note before sending !",
+                        Toast.LENGTH_LONG).show();
         }
     }
 
@@ -378,18 +276,18 @@ public class EmotiBitActivity extends AppCompatActivity implements View.OnClickL
         builder.setPositiveButton("YES", new DialogInterface.OnClickListener() {
 
             public void onClick(DialogInterface dialog, int which) {
-                if(!mIsHibernate)
+                if(!mUpdateUI.ismIsHibernate())
                 {
-                    sendAction(TypesDatas.MH, "");
-                    mButtonHibernate.setText("Wake");
-                    mImViewLogo.setImageResource(R.drawable.logo_hib_72);
-                    mIsHibernate = true;
-                    mTextViewHib.setText("Hibernate: " + "ON");
+                    MessageGenerator messageGenerator = new MessageGenerator(TypesDatas.MH,
+                            1, 1, 100, "", false);
+
+                    ActionSender actionSender = new ActionSender(messageGenerator, mConnection);
+                    actionSender.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
                 }else{
-                    mButtonHibernate.setText("Hibernate");
+                  /*  mButtonHibernate.setText("Hibernate");
                     mImViewLogo.setImageResource(R.drawable.logo_wake_72);
                     mIsHibernate = false;
-                    mTextViewHib.setText("Hibernate: " + "OFF");
+                    mTextViewHib.setText("Hibernate: " + "OFF");*/
                 }
                 dialog.dismiss();
             }
@@ -431,7 +329,7 @@ public class EmotiBitActivity extends AppCompatActivity implements View.OnClickL
 
         } else if (mMap != null) {
             mMap.setMyLocationEnabled(true);
-            statusGPSCheck();
+            //statusGPSCheck();
 
         }
     }
@@ -523,104 +421,5 @@ public class EmotiBitActivity extends AppCompatActivity implements View.OnClickL
                 });
         final AlertDialog alert = builder.create();
         alert.show();
-    }
-
-    void receiveAndPlot()
-    {
-        mAsynck = new AsyncTask<Void, String, Void>() {
-
-            @Override
-            protected Void doInBackground(Void... voids) {
-                try {
-
-                    mSocket = new DatagramSocket(mPort);
-                    mSocket.connect(mInetAdress, mPort);
-
-                    mTextViewIP.setText("IP: " + mInetAdress.getHostName());
-
-                    while (mSocket.isConnected() && !mIsHibernate) {
-
-                        byte[] buf = new byte[10000];
-                        mDatagramPacketReceive = new DatagramPacket(buf, buf.length);
-                        mSocket.receive(mDatagramPacketReceive);
-
-                        String datas = new String(buf, 0, mDatagramPacketReceive.getLength());
-
-                        publishProgress(datas);
-                    }
-
-                } catch (SocketException e) {
-                    e.printStackTrace();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-                return null;
-            }
-
-            @Override
-            protected void onProgressUpdate(String... datas) {
-                super.onProgressUpdate(datas[0]);
-
-                mExtraction = new ExtractionDatas(datas[0]);
-
-                ArrayList<ExtractedDatas> extractedDatas = mExtraction.extractDatas();
-
-                for (ExtractedDatas extrDatas : extractedDatas) {
-
-                    String dataType = extrDatas.getmDataType();
-
-                    TypesDatas typesDatas = mMapGraphSelector.get(dataType);
-
-                    Object[] values = extrDatas.getmValues();
-
-                    int selected = typesDatas.getmSelectedGraph();
-
-                    if(selected == mSelectedGraphPosition)
-                        mPlotDatas.plot(typesDatas, values);
-
-                    if(dataType.equals("B%")){
-                        setBatteryLevel(Integer.valueOf((String)values[0]));
-                    }
-                }
-            }
-
-            @Override
-            protected void onPostExecute(Void aVoid) {
-                super.onPostExecute(aVoid);
-
-                mSocket.close();
-            }
-        };
-
-        if (Build.VERSION.SDK_INT >= 11) mAsynck.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
-        else mAsynck.execute();
-    }
-
-    private void sendAction(final TypesDatas typesDatas, final String datas){
-
-        mSendActionTask = new AsyncTask<Void, String, Void>() {
-            @Override
-            protected Void doInBackground(Void... voids) {
-
-                try {
-                    String action = MessageGenerator.generateMessageWithLocalTime(typesDatas,
-                            1, 1, 100, datas);
-
-                    byte[] buffer = action.getBytes();
-
-                    DatagramPacket datagramPacketSend = new DatagramPacket(buffer, buffer.length,
-                            mInetAdress, mPort);
-
-                    mSocket.send(datagramPacketSend);
-
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-
-                return null;
-            }
-        };
-
-        mSendActionTask.execute();
     }
 }
